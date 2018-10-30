@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 int main(void) {
-    printf("Id principal %d \n", (int)getpid());
+    printf("Id principal: %d, Padre: %d \n", (int)getpid(), (int)getppid());
     for (int i = 0; i < 2; ++i) {
         pid_t pid = fork();
         if (pid > 0) {   /* Padre */
