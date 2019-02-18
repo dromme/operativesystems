@@ -13,8 +13,12 @@
 void mostrarPrompt();
 int identificarOrden(char *);
 void ejecutarOrdenInterna(int numeroElementos, char *items[]);
-void ejecutarOrdenExterna(int numeroElementos, char *items[]);
+	// Ordenes Internas
 void ejecutarEcho(int numeroElementos, char *items[]);
+void ejecutarPWD();
+void ejecutarCD(char *);
+
+void ejecutarOrdenExterna(int numeroElementos, char *items[]);
 
 // Variables globales
 char input[INPUT_SIZE], **items;
@@ -28,7 +32,9 @@ int main(){
 	return(0);
 }
 
-/**/
+/* 
+	Función que muestra el prompt al usuario en pantalla y recibe los comandos introducidos.
+*/
 void mostrarPrompt(){
 	int orden; // 1: Orden interna, 0: Orden externa
 	while(1){
@@ -40,9 +46,9 @@ void mostrarPrompt(){
 				ejecutarOrdenInterna(numeroElementos, items);
 			else
 				ejecutarOrdenExterna(numeroElementos, items);
-			if(background == 0) // Ejecución en primer plano
-				wait(&status);
 		}
+		if(background == 0) // Ejecución en primer plano
+			wait(&status);
 	}
 }
 
@@ -61,16 +67,15 @@ int identificarOrden(char *entrada){
 
 /*
 	Función que permite ejecutar una orden interna de udea-shell.
-	Estas ordenes son implementadas como programas independientes y por lo tanto
-	son accedidaas mediante una función exec.
 */
 void ejecutarOrdenInterna(int numeroElementos, char *items[]){
-	if(strcmp(items[0], "udea-pwd") == 0){
-		if((pid = fork()) == 0)
-			execl("./udea-pwd.out", "./udea-pwd.out", NULL);
+	if(strcmp(items[0], "udea-pwd") == 0)
+		ejecutarPWD();
+
+	else if(strcmp(items[0], "udea-cd") == 0){
+		if(numeroElementos == 2)
+			ejecutarCD(items[1]);
 	}
-	else if(strcmp(items[0], "udea-cd") == 0)
-		printf("udea-cd - En construccion\n");
 
 	else if(strcmp(items[0], "udea-echo") == 0)
 		ejecutarEcho(numeroElementos, items);
@@ -85,24 +90,36 @@ void ejecutarOrdenInterna(int numeroElementos, char *items[]){
 		exit(0);	
 }
 
+void ejecutarEcho(int numeroElementos, char *items[]){
+	for(int i=1; i < numeroElementos; i++)
+		printf("%s ", *(items + i));
+	printf("\n");
+}
+
+void ejecutarPWD(){
+	char cwd[256];
+	printf("%s\n", getcwd(cwd, sizeof(cwd)));
+}
+
+void ejecutarCD(char *ruta){
+	chdir(ruta);
+}
+
 /*
-	Función que permite ejecutar un programa almacenado en el disco.
+	Función que permite ejecutar un programa almacenado en el disco (/bin).
 	Se realiza un llamado a fork para crear un nuevo proceso y posteriormente
 	se sobreescribe su imagen de memoria con la del programa solicitado utilizando
 	la familia de funciones exec.
 */
 void ejecutarOrdenExterna(int numeroElementos, char *items[]){
-	char *itemsMasNULL[numeroElementos + 1];
+	char rutaPrograma[strlen(items[0]) + 6];
+	strcpy(rutaPrograma, "/bin/");
+	strcat(rutaPrograma, items[0]);
+	char *arg[numeroElementos + 1];
 	int i;
-	for(i=0; i < numeroElementos; i++)
-		*(itemsMasNULL + i) = *(items + i);
-	*(itemsMasNULL + i) = NULL;
-	if((pid = fork()) == 0)
-		execvp(items[0], itemsMasNULL);
-}
-
-void ejecutarEcho(int numeroElementos, char *items[]){
-	for(int i=1; i < numeroElementos; i++)
-		printf("%s ", *(items + i));
-	printf("\n");
+	for(i=0; i<numeroElementos; i++)
+		arg[i] = items[i];
+	arg[i] = NULL;
+	if(fork() == 0)
+		execv(rutaPrograma, arg);
 }
