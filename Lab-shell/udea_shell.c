@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <wait.h>
+#include <time.h>
 
 #include "parser.h"
 
@@ -17,6 +18,7 @@ void ejecutarOrdenInterna(int numeroElementos, char *items[]);
 void ejecutarEcho(int numeroElementos, char *items[]);
 void ejecutarPWD();
 void ejecutarCD(char *);
+void ejecutarTime();
 
 void ejecutarOrdenExterna(int numeroElementos, char *items[]);
 
@@ -81,13 +83,13 @@ void ejecutarOrdenInterna(int numeroElementos, char *items[]){
 		ejecutarEcho(numeroElementos, items);
 
 	else if(strcmp(items[0], "udea-clr") == 0)
-		printf("udea-clr - En construccion\n");
+		system("clear"); // stdlib function
 
 	else if(strcmp(items[0], "udea-time") == 0)
-		printf("udea-time - En construccion\n");
+		ejecutarTime();
 
 	else if(strcmp(items[0], "udea-exit") == 0)
-		exit(0);	
+		exit(0);
 }
 
 void ejecutarEcho(int numeroElementos, char *items[]){
@@ -96,13 +98,19 @@ void ejecutarEcho(int numeroElementos, char *items[]){
 	printf("\n");
 }
 
-void ejecutarPWD(){
+void ejecutarPWD(){ // Llamado al sistema getcwd()
 	char cwd[256];
 	printf("%s\n", getcwd(cwd, sizeof(cwd)));
 }
 
-void ejecutarCD(char *ruta){
+void ejecutarCD(char *ruta){ // Llamado al sistema chdir
 	chdir(ruta);
+}
+
+void ejecutarTime(){ // Llamado al sistema time()
+	time_t currentTime = time(NULL);
+	char *timeString = ctime(&currentTime); // Convirtiendo a formato de tiempo local
+	printf("%s", timeString);
 }
 
 /*
@@ -120,6 +128,9 @@ void ejecutarOrdenExterna(int numeroElementos, char *items[]){
 	for(i=0; i<numeroElementos; i++)
 		arg[i] = items[i];
 	arg[i] = NULL;
-	if(fork() == 0)
-		execv(rutaPrograma, arg);
+	int result;
+	if(fork() == 0){
+		result = execv(rutaPrograma, arg);
+		if (result == -1) exit(0);
+	}
 }
