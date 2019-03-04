@@ -39,14 +39,14 @@ int main(){
 */
 void mostrarPrompt(){
 	int orden; // 1: Orden interna, 0: Orden externa
+	int segundoPlanoActivo; // Activo = 1, No activo = 0
 	while(1){
 	printf("\E[1;3;4;32m"); //Permite cambiar de formato la salida por medio de codigo ANSI
     printf("udea-shell> ");
     printf("\E[00m ");
 	fgets(input, INPUT_SIZE, stdin);
-		numeroElementos = separaItems(input, &items, &background);
-		printf("numero de elementos %d\n",numeroElementos);
-		printf("Background %d\n",background);
+		segundoPlanoActivo = background;
+		numeroElementos = separaItems(input, &items, &background); // background = 1 -> Segundo plano
 		if(numeroElementos > 0){
 			orden = identificarOrden(items[0]);
 			if(orden == 1)
@@ -54,8 +54,7 @@ void mostrarPrompt(){
 			else
 				ejecutarOrdenExterna(numeroElementos, items);
 		}
-		if(background == 0) // Ejecución en primer plano
-		printf("Ejecución en primer plano");
+		if(background == 0 && segundoPlanoActivo == 0) // Ejecución en primer plano
 			wait(&status);
 	}
 }
@@ -98,13 +97,12 @@ void ejecutarOrdenInterna(int numeroElementos, char *items[]){
 		exit(0);
 
 	else if(strcmp(items[0], "udea-help") == 0){
-		printf("Comandos udea\n udea-echo\n udea-clr \n udea-time \n udea-exit \n");
+		printf("Comandos udea\n udea-pwd\n udea-cd\n udea-echo\n udea-clr \n udea-time \n udea-exit \n");
 	}
 
 	else {
-	printf("Comando no reconocido. Utilice udea-help para ver los comandos udea. \n");
+		printf("Comando no reconocido. Utilice udea-help para ver los comandos udea. \n");
 	}
-
 }
 
 void ejecutarEcho(int numeroElementos, char *items[]){
@@ -138,7 +136,6 @@ void ejecutarOrdenExterna(int numeroElementos, char *items[]){
 	char rutaPrograma[strlen(items[0]) + 6];
 	strcpy(rutaPrograma, "/bin/");
 	strcat(rutaPrograma, items[0]);
-	printf("%s ", rutaPrograma);
 	char *arg[numeroElementos + 1];
 	int i;
 	for(i=0; i<numeroElementos; i++)
@@ -149,6 +146,4 @@ void ejecutarOrdenExterna(int numeroElementos, char *items[]){
 		result = execv(rutaPrograma, arg);
 		if (result == -1) exit(0);
 	}
-
-	
 }
