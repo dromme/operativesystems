@@ -145,5 +145,15 @@ void ejecutarOrdenExterna(int numeroElementos, char *items[]){
 	if(fork() == 0){
 		result = execv(rutaPrograma, arg);
 		if (result == -1) exit(0);
-	}
+	}	/* 
+		Esta última validación (result == -1) es muy importante ya que evita que se creen
+		nuevos procesos del programa udea_shell.c de forma innecesaria (lo que conllevaría
+		a un colapso del mismo). Luego de realizar una llamada a la función execv se verifica,
+		eventualmente, si esta fue o no exitosa. Si fue exitosa, la imagen de memoria del nuevo proceso
+		habrá sido sobreescrita y la validación no se ejecutará (se empezará a ejecutar el nuevo programa). 
+		Si no fue exitosa, todavía no se habrá sobreescrito la imagen de memoria del proceso y esté continuará 
+		su ejecución como una copia del padre. Es por esto que si no se realiza la verificación, la llamada fallida 
+		resultará en una nueva instancia del bash. Así, si la llamada no es exitosa, result será igual a -1 
+		y el nuevo proceso creado será obligado a finalizar.
+		*/
 }
